@@ -3,16 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visual Logic Circuit Simulation</title>
+    <title>Logic-Based Safety Interlock Simulator</title>
     <style>
         :root {
             --bg-color: #12121a;
             --panel-bg: #1e1e28;
             --wire-off: #3f3f4e;
-            --wire-on: #00e676; /* Bright Green */
+            --wire-on: #00e676; 
             --gate-color: #8c8cba;
             --text-color: #ffffff;
             --danger: #ff4d4d;
+            --accent: #5e5ce6;
         }
 
         body {
@@ -24,6 +25,7 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            padding: 40px 20px;
         }
 
         .app-container {
@@ -31,13 +33,14 @@
             border-radius: 12px;
             box-shadow: 0 15px 35px rgba(0,0,0,0.6);
             padding: 30px;
-            width: 900px;
+            width: 1000px;
             display: flex;
             flex-direction: column;
             border: 1px solid #2a2a35;
         }
 
-        h2 { text-align: center; margin-top: 0; font-weight: 400; letter-spacing: 1px; }
+        h2 { text-align: center; margin-top: 0; font-weight: 400; letter-spacing: 1px; border-bottom: 1px solid #333; padding-bottom: 15px;}
+        h3 { font-size: 1.2em; color: var(--gate-color); margin-bottom: 15px; border-bottom: 1px dashed #333; padding-bottom: 5px;}
 
         .main-content {
             display: flex;
@@ -46,79 +49,61 @@
         }
 
         /* Controls Area */
-        .controls {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .switch-box {
-            background: #282836;
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid var(--wire-off);
-            transition: all 0.3s;
-        }
-        
+        .controls { flex: 1; display: flex; flex-direction: column; gap: 20px; }
+        .switch-box { background: #282836; padding: 15px; border-radius: 8px; border-left: 4px solid var(--wire-off); transition: all 0.3s; }
         .switch-box.active { border-left-color: var(--wire-on); }
         .switch-box.danger-active { border-left-color: var(--danger); }
-
         .switch-label { font-size: 0.9em; color: #aaa; margin-bottom: 10px; display: block; text-transform: uppercase; letter-spacing: 1px;}
         
         button {
-            width: 100%;
-            padding: 12px;
-            font-size: 1em;
-            font-weight: bold;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: 0.2s;
-            color: white;
-            background: #444;
+            width: 100%; padding: 12px; font-size: 1em; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; transition: 0.2s; color: white; background: #444;
         }
-
         button.btn-on { background: var(--wire-on); box-shadow: 0 0 15px rgba(0, 230, 118, 0.4); color: #000; }
         button.btn-danger { background: var(--danger); box-shadow: 0 0 15px rgba(255, 77, 77, 0.4); }
 
         /* Circuit Area */
         .circuit-view {
-            flex: 2;
-            background: #171720;
-            border-radius: 8px;
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border: 2px dashed #2a2a36;
+            flex: 2; background: #171720; border-radius: 8px; position: relative; display: flex; justify-content: center; align-items: center; border: 2px dashed #2a2a36;
         }
-
-        svg {
-            width: 100%;
-            height: 350px;
-            display: block;
-        }
-
-        /* SVG Styles */
+        svg.circuit-svg { width: 100%; height: 320px; display: block; }
         .wire { fill: none; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; transition: stroke 0.3s ease, filter 0.3s ease; }
         .gate { fill: none; stroke: var(--gate-color); stroke-width: 3; }
         .gate-fill { fill: #232332; stroke: var(--gate-color); stroke-width: 3; }
         .label { fill: #aaa; font-family: monospace; font-size: 14px; user-select: none; }
         .val-label { font-family: monospace; font-size: 16px; font-weight: bold; transition: fill 0.3s; }
-        
         #lamp { transition: fill 0.3s, filter 0.3s; }
-        
-        .equation-bar {
-            text-align: center;
-            background: #12121a;
-            padding: 15px;
-            margin-top: 25px;
-            border-radius: 6px;
-            font-family: monospace;
-            font-size: 1.2em;
-            color: var(--gate-color);
+
+        /* Theory Section */
+        .theory-section {
+            display: flex;
+            gap: 20px;
+            margin-top: 30px;
+            background: #171720;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #2a2a35;
         }
+
+        .formula-box { flex: 1; display: flex; flex-direction: column;}
+        .formula-text { font-family: 'Courier New', Courier, monospace; font-size: 1.3em; background: #232332; padding: 15px; border-radius: 6px; text-align: center; color: var(--wire-on); margin-bottom: 15px; border: 1px solid #333;}
+        .formula-subtext { font-family: 'Courier New', Courier, monospace; color: #aaa; font-size: 0.9em; line-height: 1.6;}
+
+        .table-box { flex: 1; }
+        table { width: 100%; border-collapse: collapse; font-family: monospace; font-size: 0.9em; text-align: center; }
+        th, td { border: 1px solid #333; padding: 8px; }
+        th { background-color: #232332; color: var(--gate-color); }
+        .row-safe { color: var(--danger); }
+        .row-run { color: var(--wire-on); font-weight: bold; background: rgba(0, 230, 118, 0.1); }
+
+        .graph-box { flex: 1.5; }
+        .graph-svg { width: 100%; height: 180px; background: #232332; border-radius: 6px; border: 1px solid #333;}
+        .axis-line { stroke: #555; stroke-width: 1; }
+        .wave-line { fill: none; stroke-width: 2; }
+        .wave-a { stroke: #3498db; }
+        .wave-b { stroke: #e67e22; }
+        .wave-c { stroke: #e74c3c; }
+        .wave-y { stroke: var(--wire-on); stroke-width: 3;}
+        .graph-text { fill: #aaa; font-family: monospace; font-size: 10px; }
     </style>
 </head>
 <body>
@@ -143,13 +128,11 @@
         </div>
 
         <div class="circuit-view">
-            <svg viewBox="0 0 550 300">
+            <svg class="circuit-svg" viewBox="0 0 550 300">
                 <path id="wireA" class="wire" d="M 40 70 L 320 70" stroke="#3f3f4e"/>
                 <path id="wireB" class="wire" d="M 40 150 L 320 150" stroke="#3f3f4e"/>
-                
                 <path id="wireC1" class="wire" d="M 40 230 L 160 230" stroke="#3f3f4e"/>
                 <path id="wireC2" class="wire" d="M 210 230 L 320 230" stroke="#3f3f4e"/>
-
                 <path id="wireY" class="wire" d="M 420 150 L 480 150" stroke="#3f3f4e"/>
 
                 <circle cx="40" cy="70" r="5" fill="#aaa" />
@@ -186,27 +169,62 @@
             </svg>
         </div>
     </div>
-    
-    <div class="equation-bar">
-        System Logic: Y = A · B · C'
+
+    <div class="theory-section">
+        <div class="formula-box">
+            <h3>Boolean Logic</h3>
+            <div class="formula-text">Y = A &bull; B &bull; C'</div>
+            <div class="formula-subtext">
+                <strong>A:</strong> Main Power<br>
+                <strong>B:</strong> Safety Guard<br>
+                <strong>C:</strong> E-Stop (Inverted via NOT gate)<br>
+                <strong>Y:</strong> Motor Output<br><br>
+                <em>The AND (&bull;) operator ensures the motor exclusively runs when ALL safety conditions equal 1.</em>
+            </div>
+        </div>
+
+        <div class="table-box">
+            <h3>Truth Table</h3>
+            <table>
+                <tr><th>A</th><th>B</th><th>C</th><th>C'</th><th>Y</th></tr>
+                <tr class="row-safe"><td>0</td><td>X</td><td>X</td><td>X</td><td>0</td></tr>
+                <tr class="row-safe"><td>1</td><td>0</td><td>X</td><td>X</td><td>0</td></tr>
+                <tr class="row-safe"><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td></tr>
+                <tr class="row-run"><td>1</td><td>1</td><td>0</td><td>1</td><td>1</td></tr>
+            </table>
+        </div>
+
+        <div class="graph-box">
+            <h3>Timing Diagram (Waveform)</h3>
+            <svg class="graph-svg" viewBox="0 0 300 150">
+                <line x1="50" y1="10" x2="50" y2="140" class="axis-line" stroke-dasharray="2,2"/>
+                <line x1="100" y1="10" x2="100" y2="140" class="axis-line" stroke-dasharray="2,2"/>
+                <line x1="150" y1="10" x2="150" y2="140" class="axis-line" stroke-dasharray="2,2"/>
+                <line x1="200" y1="10" x2="200" y2="140" class="axis-line" stroke-dasharray="2,2"/>
+                <line x1="250" y1="10" x2="250" y2="140" class="axis-line" stroke-dasharray="2,2"/>
+
+                <text x="10" y="25" class="graph-text" fill="#3498db">A</text>
+                <text x="10" y="55" class="graph-text" fill="#e67e22">B</text>
+                <text x="10" y="85" class="graph-text" fill="#e74c3c">C</text>
+                <text x="10" y="125" class="graph-text" fill="#00e676" font-weight="bold">Y</text>
+
+                <text x="65" y="145" class="graph-text">t1</text>
+                <text x="115" y="145" class="graph-text">t2</text>
+                <text x="165" y="145" class="graph-text">t3</text>
+                <text x="215" y="145" class="graph-text">t4</text>
+
+                <path d="M 25 30 L 50 30 L 50 15 L 280 15" class="wave-line wave-a"/>
+                <path d="M 25 60 L 100 60 L 100 45 L 200 45 L 200 60 L 280 60" class="wave-line wave-b"/>
+                <path d="M 25 75 L 150 75 L 150 90 L 280 90" class="wave-line wave-c"/>
+                <path d="M 25 130 L 150 130 L 150 115 L 200 115 L 200 130 L 280 130" class="wave-line wave-y"/>
+            </svg>
+        </div>
     </div>
 </div>
 
 <script>
-    // Initial States: Safe State (Power Off, Door Open, E-Stop Pressed)
-    let state = {
-        A: false,
-        B: false,
-        C: true 
-    };
-
-    const colors = {
-        off: '#3f3f4e',
-        on: '#00e676',
-        danger: '#ff4d4d',
-        textOff: '#aaa',
-        textOn: '#00e676'
-    };
+    let state = { A: false, B: false, C: true };
+    const colors = { off: '#3f3f4e', on: '#00e676', danger: '#ff4d4d', textOff: '#aaa', textOn: '#00e676' };
 
     function toggle(input) {
         state[input] = !state[input];
@@ -214,11 +232,9 @@
     }
 
     function updateSimulation() {
-        // Logic Calculations
         let notC = !state.C;
         let outY = state.A && state.B && notC;
 
-        // 1. Update Buttons and UI Boxes
         const btnA = document.getElementById('btnA');
         const boxA = document.getElementById('boxA');
         btnA.innerText = state.A ? "POWER ON" : "POWER OFF";
@@ -235,10 +251,8 @@
         const boxC = document.getElementById('boxC');
         btnC.innerText = state.C ? "E-STOP PRESSED" : "E-STOP RELEASED";
         btnC.className = state.C ? "btn-danger" : "";
-        // If E-stop is pressed (1), it's dangerous, highlight red. If released (0), it's safe to run.
         boxC.className = state.C ? "switch-box danger-active" : "switch-box";
 
-        // 2. Update SVG Wires (Color & Glow)
         function setWire(id, isOn, isDanger = false) {
             const wire = document.getElementById(id);
             let color = isOn ? (isDanger ? colors.danger : colors.on) : colors.off;
@@ -248,11 +262,10 @@
 
         setWire('wireA', state.A);
         setWire('wireB', state.B);
-        setWire('wireC1', state.C, true); // Red when pressed
+        setWire('wireC1', state.C, true); 
         setWire('wireC2', notC);
         setWire('wireY', outY);
 
-        // 3. Update 1/0 Labels on Wires
         function setLabel(id, val) {
             const el = document.getElementById(id);
             el.textContent = val ? "1" : "0";
@@ -265,7 +278,6 @@
         setLabel('valCnot', notC);
         setLabel('valY', outY);
 
-        // 4. Update Output Lamp
         const lamp = document.getElementById('lamp');
         if (outY) {
             lamp.setAttribute('fill', colors.on);
@@ -276,7 +288,6 @@
         }
     }
 
-    // Initialize UI on load
     updateSimulation();
 </script>
 
